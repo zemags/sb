@@ -10,7 +10,7 @@ import (
 )
 
 const createTransfer = `-- name: CreateTransfer :one
-INSERT INTO transfers (
+INSERT INTO Transfer (
     id,
     from_account_id,
     to_account_id,
@@ -31,9 +31,9 @@ type CreateTransferParams struct {
 	Amount        int64 `json:"amount"`
 }
 
-func (q *Queries) CreateTransfer(ctx context.Context, arg CreateTransferParams) (Transfers, error) {
+func (q *Queries) CreateTransfer(ctx context.Context, arg CreateTransferParams) (Transfer, error) {
 	row := q.db.QueryRowContext(ctx, createTransfer, arg.FromAccountID, arg.ToAccountID, arg.Amount)
-	var i Transfers
+	var i Transfer
 	err := row.Scan(
 		&i.ID,
 		&i.FromAccountID,
@@ -45,7 +45,7 @@ func (q *Queries) CreateTransfer(ctx context.Context, arg CreateTransferParams) 
 }
 
 const deleteTransfer = `-- name: DeleteTransfer :exec
-DELETE FROM transfers WHERE id = $1
+DELETE FROM Transfer WHERE id = $1
 `
 
 func (q *Queries) DeleteTransfer(ctx context.Context, id int64) error {
@@ -54,12 +54,12 @@ func (q *Queries) DeleteTransfer(ctx context.Context, id int64) error {
 }
 
 const getTransfer = `-- name: GetTransfer :one
-SELECT id, from_account_id, to_account_id, amount, created_at FROM transfers WHERE id = $1
+SELECT id, from_account_id, to_account_id, amount, created_at FROM Transfer WHERE id = $1
 `
 
-func (q *Queries) GetTransfer(ctx context.Context, id int64) (Transfers, error) {
+func (q *Queries) GetTransfer(ctx context.Context, id int64) (Transfer, error) {
 	row := q.db.QueryRowContext(ctx, getTransfer, id)
-	var i Transfers
+	var i Transfer
 	err := row.Scan(
 		&i.ID,
 		&i.FromAccountID,
@@ -70,19 +70,19 @@ func (q *Queries) GetTransfer(ctx context.Context, id int64) (Transfers, error) 
 	return i, err
 }
 
-const getTransfers = `-- name: GetTransfers :many
-SELECT id, from_account_id, to_account_id, amount, created_at FROM transfers WHERE from_account_id = $1 OR to_account_id = $1 ORDER BY created_at DESC
+const getTransfers = `-- name: GetTransfer :many
+SELECT id, from_account_id, to_account_id, amount, created_at FROM Transfer WHERE from_account_id = $1 OR to_account_id = $1 ORDER BY created_at DESC
 `
 
-func (q *Queries) GetTransfers(ctx context.Context, fromAccountID int64) ([]Transfers, error) {
-	rows, err := q.db.QueryContext(ctx, getTransfers, fromAccountID)
+func (q *Queries) GetTransfers(ctx context.Context, fromAccountID int64) ([]Transfer, error) {
+	rows, err := q.db.QueryContext(ctx, getTransfer, fromAccountID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Transfers
+	var items []Transfer
 	for rows.Next() {
-		var i Transfers
+		var i Transfer
 		if err := rows.Scan(
 			&i.ID,
 			&i.FromAccountID,
@@ -103,25 +103,25 @@ func (q *Queries) GetTransfers(ctx context.Context, fromAccountID int64) ([]Tran
 	return items, nil
 }
 
-const getTransfersByAccount = `-- name: GetTransfersByAccount :many
-SELECT id, from_account_id, to_account_id, amount, created_at FROM transfers WHERE from_account_id = $1 OR to_account_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3
+const getTransferByAccount = `-- name: GetTransferByAccount :many
+SELECT id, from_account_id, to_account_id, amount, created_at FROM Transfer WHERE from_account_id = $1 OR to_account_id = $1 ORDER BY created_at DESC LIMIT $2 OFFSET $3
 `
 
-type GetTransfersByAccountParams struct {
+type GetTransferByAccountParams struct {
 	FromAccountID int64 `json:"from_account_id"`
 	Limit         int32 `json:"limit"`
 	Offset        int32 `json:"offset"`
 }
 
-func (q *Queries) GetTransfersByAccount(ctx context.Context, arg GetTransfersByAccountParams) ([]Transfers, error) {
-	rows, err := q.db.QueryContext(ctx, getTransfersByAccount, arg.FromAccountID, arg.Limit, arg.Offset)
+func (q *Queries) GetTransferByAccount(ctx context.Context, arg GetTransferByAccountParams) ([]Transfer, error) {
+	rows, err := q.db.QueryContext(ctx, getTransferByAccount, arg.FromAccountID, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Transfers
+	var items []Transfer
 	for rows.Next() {
-		var i Transfers
+		var i Transfer
 		if err := rows.Scan(
 			&i.ID,
 			&i.FromAccountID,
@@ -143,7 +143,7 @@ func (q *Queries) GetTransfersByAccount(ctx context.Context, arg GetTransfersByA
 }
 
 const updateTransfer = `-- name: UpdateTransfer :one
-UPDATE transfers SET
+UPDATE Transfer SET
     from_account_id = $1,
     to_account_id = $2,
     amount = $3
@@ -158,14 +158,14 @@ type UpdateTransferParams struct {
 	ID            int64 `json:"id"`
 }
 
-func (q *Queries) UpdateTransfer(ctx context.Context, arg UpdateTransferParams) (Transfers, error) {
+func (q *Queries) UpdateTransfer(ctx context.Context, arg UpdateTransferParams) (Transfer, error) {
 	row := q.db.QueryRowContext(ctx, updateTransfer,
 		arg.FromAccountID,
 		arg.ToAccountID,
 		arg.Amount,
 		arg.ID,
 	)
-	var i Transfers
+	var i Transfer
 	err := row.Scan(
 		&i.ID,
 		&i.FromAccountID,

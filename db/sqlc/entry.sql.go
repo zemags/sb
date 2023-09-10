@@ -10,7 +10,7 @@ import (
 )
 
 const createEntry = `-- name: CreateEntry :one
-INSERT INTO entries (
+INSERT INTO Entry (
     account_id,
     amount
 ) VALUES (
@@ -25,9 +25,9 @@ type CreateEntryParams struct {
 	Amount    int64 `json:"amount"`
 }
 
-func (q *Queries) CreateEntry(ctx context.Context, arg CreateEntryParams) (Entries, error) {
+func (q *Queries) CreateEntry(ctx context.Context, arg CreateEntryParams) (Entry, error) {
 	row := q.db.QueryRowContext(ctx, createEntry, arg.AccountID, arg.Amount)
-	var i Entries
+	var i Entry
 	err := row.Scan(
 		&i.ID,
 		&i.AccountID,
@@ -38,7 +38,7 @@ func (q *Queries) CreateEntry(ctx context.Context, arg CreateEntryParams) (Entri
 }
 
 const deleteEntry = `-- name: DeleteEntry :exec
-DELETE FROM entries WHERE id = $1
+DELETE FROM Entry WHERE id = $1
 `
 
 func (q *Queries) DeleteEntry(ctx context.Context, id int64) error {
@@ -47,7 +47,7 @@ func (q *Queries) DeleteEntry(ctx context.Context, id int64) error {
 }
 
 const deleteEntryByAccount = `-- name: DeleteEntryByAccount :exec
-DELETE FROM entries WHERE account_id = $1
+DELETE FROM Entry WHERE account_id = $1
 `
 
 func (q *Queries) DeleteEntryByAccount(ctx context.Context, accountID int64) error {
@@ -56,12 +56,12 @@ func (q *Queries) DeleteEntryByAccount(ctx context.Context, accountID int64) err
 }
 
 const getEntry = `-- name: GetEntry :one
-SELECT id, account_id, amount, created_at FROM entries WHERE id = $1
+SELECT id, account_id, amount, created_at FROM Entry WHERE id = $1
 `
 
-func (q *Queries) GetEntry(ctx context.Context, id int64) (Entries, error) {
+func (q *Queries) GetEntry(ctx context.Context, id int64) (Entry, error) {
 	row := q.db.QueryRowContext(ctx, getEntry, id)
-	var i Entries
+	var i Entry
 	err := row.Scan(
 		&i.ID,
 		&i.AccountID,
@@ -72,18 +72,18 @@ func (q *Queries) GetEntry(ctx context.Context, id int64) (Entries, error) {
 }
 
 const getEntryByAccount = `-- name: GetEntryByAccount :many
-SELECT id, account_id, amount, created_at FROM entries WHERE account_id = $1
+SELECT id, account_id, amount, created_at FROM Entry WHERE account_id = $1
 `
 
-func (q *Queries) GetEntryByAccount(ctx context.Context, accountID int64) ([]Entries, error) {
+func (q *Queries) GetEntryByAccount(ctx context.Context, accountID int64) ([]Entry, error) {
 	rows, err := q.db.QueryContext(ctx, getEntryByAccount, accountID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Entries
+	var items []Entry
 	for rows.Next() {
-		var i Entries
+		var i Entry
 		if err := rows.Scan(
 			&i.ID,
 			&i.AccountID,
@@ -104,7 +104,7 @@ func (q *Queries) GetEntryByAccount(ctx context.Context, accountID int64) ([]Ent
 }
 
 const updateEntry = `-- name: UpdateEntry :one
-UPDATE entries SET
+UPDATE Entry SET
     account_id = $1,
     amount = $2
 WHERE id = $3
@@ -117,9 +117,9 @@ type UpdateEntryParams struct {
 	ID        int64 `json:"id"`
 }
 
-func (q *Queries) UpdateEntry(ctx context.Context, arg UpdateEntryParams) (Entries, error) {
+func (q *Queries) UpdateEntry(ctx context.Context, arg UpdateEntryParams) (Entry, error) {
 	row := q.db.QueryRowContext(ctx, updateEntry, arg.AccountID, arg.Amount, arg.ID)
-	var i Entries
+	var i Entry
 	err := row.Scan(
 		&i.ID,
 		&i.AccountID,
@@ -130,7 +130,7 @@ func (q *Queries) UpdateEntry(ctx context.Context, arg UpdateEntryParams) (Entri
 }
 
 const updateEntryByAccount = `-- name: UpdateEntryByAccount :many
-UPDATE entries SET
+UPDATE Entry SET
     account_id = $1,
     amount = $2
 WHERE account_id = $3
@@ -143,15 +143,15 @@ type UpdateEntryByAccountParams struct {
 	AccountID_2 int64 `json:"account_id_2"`
 }
 
-func (q *Queries) UpdateEntryByAccount(ctx context.Context, arg UpdateEntryByAccountParams) ([]Entries, error) {
+func (q *Queries) UpdateEntryByAccount(ctx context.Context, arg UpdateEntryByAccountParams) ([]Entry, error) {
 	rows, err := q.db.QueryContext(ctx, updateEntryByAccount, arg.AccountID, arg.Amount, arg.AccountID_2)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Entries
+	var items []Entry
 	for rows.Next() {
-		var i Entries
+		var i Entry
 		if err := rows.Scan(
 			&i.ID,
 			&i.AccountID,

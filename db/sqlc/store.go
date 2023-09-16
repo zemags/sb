@@ -45,11 +45,11 @@ type TransferTxParams struct {
 }
 
 type TransferTxResult struct {
-	Transfer    Transfer `json:"transfer"`
-	FromAccount Account  `json:"from_account"`
-	ToAccount   Account  `json:"to_account"`
-	ToEntry     Entry    `json:"to_entry"`
-	FromEntry   Entry    `json:"from_entry"`
+	Transfer    Transfers `json:"transfer"`
+	FromAccount Accounts  `json:"from_account"`
+	ToAccount   Accounts  `json:"to_account"`
+	ToEntry     Entries   `json:"to_entry"`
+	FromEntry   Entries   `json:"from_entry"`
 }
 
 // TransferTx performs a money transfer from one account to the other.
@@ -64,22 +64,23 @@ func (store *Store) TransferTx(ctx context.Context, arg TransferTxParams) (Trans
 		if err != nil {
 			return err
 		}
-		// update the sender's account balance
-		result.FromAccount, err = q.UpdateAccount(ctx, UpdateAccountParams{
-			ID:      arg.FromAccountID,
-			Balance: arg.Amount * -1,
+
+		result.FromEntry, err = q.CreateEntry(ctx, CreateEntryParams{
+			AccountID: arg.FromAccountID,
+			Amount:    -arg.Amount,
 		})
-		if err != nil {
+		if nil != err {
 			return err
 		}
-		// update the receiver's account balance
-		result.ToAccount, err = q.UpdateAccount(ctx, UpdateAccountParams{
-			ID:      arg.ToAccountID,
-			Balance: arg.Amount,
+
+		result.ToEntry, err = q.CreateEntry(ctx, CreateEntryParams{
+			AccountID: arg.ToAccountID,
+			Amount:    arg.Amount,
 		})
-		if err != nil {
+		if nil != err {
 			return err
 		}
+
 		return nil
 	})
 	return result, err

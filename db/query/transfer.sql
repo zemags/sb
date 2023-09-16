@@ -1,16 +1,12 @@
 -- name: CreateTransfer :one
 INSERT INTO transfers (
-    id,
     from_account_id,
     to_account_id,
-    amount,
-    created_at
+    amount
 ) VALUES (
-    uuid_generate_v4(),
     $1,
     $2,
-    $3,
-    now()
+    $3
 ) RETURNING *;
 
 -- name: GetTransfer :one
